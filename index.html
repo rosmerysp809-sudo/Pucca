@@ -27,6 +27,7 @@
       display: flex;
       justify-content: center;
       align-items: center;
+      position: fixed;
     }
 
     /* Aviso para obligar a girar la pantalla en vertical */
@@ -70,10 +71,7 @@
       position: relative;
       width: 100vw;
       height: 100vh;
-      max-width: 960px;
-      max-height: 540px;
       background: #87CEEB;
-      box-shadow: 0 0 30px rgba(230, 0, 38, 0.4);
       overflow: hidden;
       display: flex;
       justify-content: center;
@@ -84,13 +82,13 @@
       display: block;
       width: 100%;
       height: 100%;
-      object-fit: contain;
+      object-fit: fill;
     }
 
     /* HUD Header */
     #hud {
       position: absolute;
-      top: 8px;
+      top: 10px;
       left: 12px;
       right: 12px;
       display: flex;
@@ -101,7 +99,7 @@
     }
 
     .hud-card {
-      background: rgba(0, 0, 0, 0.65);
+      background: rgba(0, 0, 0, 0.7);
       border: 2px solid var(--gold-yellow);
       border-radius: 20px;
       padding: 4px 12px;
@@ -128,7 +126,7 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(0, 0, 0, 0.8);
+      background: rgba(0, 0, 0, 0.85);
       display: flex;
       justify-content: center;
       align-items: center;
@@ -210,43 +208,58 @@
       width: 100%;
     }
 
-    /* Controles Táctiles Móviles Horizontales */
-    #mobile-controls {
+    /* CONTROLES TÁCTILES ELEVADOS Y ZONAS TÁCTILES */
+    #touch-zones {
       position: absolute;
-      bottom: 15px;
-      left: 15px;
-      right: 15px;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
       display: flex;
-      justify-content: space-between;
-      pointer-events: none;
       z-index: 20;
     }
 
-    .touch-btn-group {
+    .touch-zone {
+      height: 100%;
       display: flex;
-      gap: 12px;
-      pointer-events: auto;
+      justify-content: center;
+      align-items: flex-end;
+      padding-bottom: 35px; /* Elevado para no ser tapado por Safari */
     }
 
-    .touch-btn {
-      width: 58px;
-      height: 58px;
+    #zone-left {
+      width: 25%;
+    }
+
+    #zone-right {
+      width: 25%;
+    }
+
+    #zone-jump {
+      width: 50%;
+      justify-content: flex-end;
+      padding-right: 25px;
+    }
+
+    .control-btn {
+      width: 60px;
+      height: 60px;
       border-radius: 50%;
-      background: rgba(255, 255, 255, 0.82);
+      background: rgba(255, 255, 255, 0.85);
       border: 3px solid var(--pucca-red);
       color: var(--pucca-red);
-      font-size: 24px;
+      font-size: 26px;
       display: flex;
       justify-content: center;
       align-items: center;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-      touch-action: manipulation;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+      pointer-events: none; /* La zona maneja el touch */
     }
 
-    .touch-btn:active {
+    .control-btn.active {
       background: var(--pucca-red);
       color: white;
-      transform: scale(0.95);
+      transform: scale(0.92);
     }
 
     .hidden {
@@ -286,10 +299,10 @@
         <p>¡Ayuda a Pucca a perseguir a Garu por la Aldea Soju!</p>
         
         <ul class="rules-list">
-          <li><b>Controles:</b> Usa los botones en pantalla para moverte y saltar.</li>
-          <li><b>Eliminar Ninjas:</b> ¡Salta y cáeles justo encima de la cabeza!</li>
-          <li><b>Bloques Sorpresa:</b> Golpeálos por debajo para obtener Ramen 🍜 o Turbo 💖.</li>
-          <li><b>Cofres:</b> Ábrelos para leer mensajes cariñosos y divertidos.</li>
+          <li><b>Toca la Izquierda/Centro-Izq:</b> Para moverte ⬅️ ➡️</li>
+          <li><b>Toca toda la Derecha:</b> Para saltar ⬆️</li>
+          <li><b>Eliminar Ninjas:</b> ¡Salta y cáeles encima de la cabeza!</li>
+          <li><b>Bloques Sorpresa:</b> Golpeálos por debajo para Ramen 🍜 o Turbo 💖.</li>
         </ul>
 
         <button class="btn" id="start-btn">¡Empezar Juguito!</button>
@@ -316,14 +329,16 @@
       </div>
     </div>
 
-    <!-- Controles Táctiles -->
-    <div id="mobile-controls">
-      <div class="touch-btn-group">
-        <div class="touch-btn" id="btn-left">◀</div>
-        <div class="touch-btn" id="btn-right">▶</div>
+    <!-- Zonas Táctiles de Pantalla Completa + Botones Flotantes Elevados -->
+    <div id="touch-zones">
+      <div class="touch-zone" id="zone-left">
+        <div class="control-btn" id="ui-btn-left">◀</div>
       </div>
-      <div class="touch-btn-group">
-        <div class="touch-btn" id="btn-jump">▲</div>
+      <div class="touch-zone" id="zone-right">
+        <div class="control-btn" id="ui-btn-right">▶</div>
+      </div>
+      <div class="touch-zone" id="zone-jump">
+        <div class="control-btn" id="ui-btn-jump">▲</div>
       </div>
     </div>
   </div>
@@ -451,6 +466,7 @@
 
     const keys = { left: false, right: false, jump: false };
 
+    /* Teclado Físico */
     window.addEventListener('keydown', e => {
       if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') keys.left = true;
       if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') keys.right = true;
@@ -470,29 +486,39 @@
       if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W' || e.key === ' ') keys.jump = false;
     });
 
-    const bindTouch = (id, keyName) => {
-      const el = document.getElementById(id);
-      el.addEventListener('touchstart', (e) => {
+    /* Control Táctil por Zonas */
+    const setupZone = (zoneId, uiBtnId, actionKey) => {
+      const zone = document.getElementById(zoneId);
+      const uiBtn = document.getElementById(uiBtnId);
+
+      const handleStart = (e) => {
         e.preventDefault();
-        if (keyName === 'jump') {
+        uiBtn.classList.add('active');
+        if (actionKey === 'jump') {
           if (pucca.grounded) {
             pucca.vy = pucca.jumpPower;
             pucca.grounded = false;
             sound.playJump();
           }
         } else {
-          keys[keyName] = true;
+          keys[actionKey] = true;
         }
-      });
-      el.addEventListener('touchend', (e) => {
+      };
+
+      const handleEnd = (e) => {
         e.preventDefault();
-        if (keyName !== 'jump') keys[keyName] = false;
-      });
+        uiBtn.classList.remove('active');
+        if (actionKey !== 'jump') keys[actionKey] = false;
+      };
+
+      zone.addEventListener('touchstart', handleStart, { passive: false });
+      zone.addEventListener('touchend', handleEnd, { passive: false });
+      zone.addEventListener('touchcancel', handleEnd, { passive: false });
     };
 
-    bindTouch('btn-left', 'left');
-    bindTouch('btn-right', 'right');
-    bindTouch('btn-jump', 'jump');
+    setupZone('zone-left', 'ui-btn-left', 'left');
+    setupZone('zone-right', 'ui-btn-right', 'right');
+    setupZone('zone-jump', 'ui-btn-jump', 'jump');
 
     const pucca = {
       x: 50,
