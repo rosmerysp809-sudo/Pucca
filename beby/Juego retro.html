@@ -1,0 +1,1022 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Pucca & Garu Love Quest</title>
+    <style>
+        :root {
+            --pucca-red: #e60026;
+            --pucca-dark-red: #990014;
+            --garu-black: #1a1a1a;
+            --gold-yellow: #ffcc00;
+            --bg-pink: #ffe6ec;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+            font-family: 'Comic Sans MS', 'Chalkboard SE', 'Arial', sans-serif;
+        }
+
+        body {
+            background-color: #111;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        #game-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            max-width: 900px;
+            max-height: 500px;
+            background: #87CEEB;
+            box-shadow: 0 0 30px rgba(230, 0, 38, 0.4);
+            border-radius: 12px;
+            overflow: hidden;
+            border: 4px solid var(--pucca-red);
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* HUD Header */
+        #hud {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            right: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        .hud-card {
+            background: rgba(0, 0, 0, 0.65);
+            border: 2px solid var(--gold-yellow);
+            border-radius: 20px;
+            padding: 6px 14px;
+            color: #fff;
+            font-weight: bold;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            backdrop-filter: blur(4px);
+        }
+
+        .hearts {
+            color: #ff3366;
+            font-size: 18px;
+            letter-spacing: 2px;
+        }
+
+        /* Modal / Overlay */
+        .modal-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.75);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            backdrop-filter: blur(5px);
+            padding: 20px;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal-card {
+            background: #fff;
+            border: 4px solid var(--pucca-red);
+            border-radius: 20px;
+            padding: 24px;
+            max-width: 520px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            position: relative;
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes popIn {
+            0% {
+                transform: scale(0.7);
+                opacity: 0;
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .modal-card h2 {
+            color: var(--pucca-red);
+            font-size: 24px;
+            margin-bottom: 12px;
+            text-shadow: 1px 1px 0px #ffd1dc;
+        }
+
+        .modal-card p {
+            color: #333;
+            font-size: 15px;
+            line-height: 1.5;
+            margin-bottom: 16px;
+        }
+
+        .rules-list {
+            text-align: left;
+            background: #fff5f7;
+            padding: 12px 16px;
+            border-radius: 12px;
+            border: 1px dashed var(--pucca-red);
+            margin-bottom: 16px;
+            font-size: 13px;
+            color: #444;
+        }
+
+            .rules-list li {
+                margin-bottom: 6px;
+                list-style-type: '🍜 ';
+            }
+
+        .btn {
+            background: linear-gradient(180deg, #ff4d6d 0%, var(--pucca-red) 100%);
+            color: white;
+            border: none;
+            padding: 12px 28px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 25px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(230, 0, 38, 0.4);
+            transition: all 0.2s ease;
+            outline: none;
+            display: inline-block;
+        }
+
+            .btn:hover {
+                transform: translateY(-2px) scale(1.03);
+                box-shadow: 0 6px 16px rgba(230, 0, 38, 0.6);
+            }
+
+            .btn:active {
+                transform: translateY(1px);
+            }
+
+        /* Auto-close Progress Bar */
+        .progress-bar-container {
+            width: 100%;
+            height: 6px;
+            background: #eee;
+            border-radius: 3px;
+            margin-top: 12px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: var(--pucca-red);
+            width: 100%;
+        }
+
+        /* Mobile Controls */
+        #mobile-controls {
+            position: absolute;
+            bottom: 12px;
+            left: 12px;
+            right: 12px;
+            display: flex;
+            justify-content: space-between;
+            pointer-events: none;
+            z-index: 20;
+        }
+
+        .touch-btn-group {
+            display: flex;
+            gap: 10px;
+            pointer-events: auto;
+        }
+
+        .touch-btn {
+            width: 54px;
+            height: 54px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.85);
+            border: 3px solid var(--pucca-red);
+            color: var(--pucca-red);
+            font-size: 22px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            touch-action: manipulation;
+        }
+
+            .touch-btn:active {
+                background: var(--pucca-red);
+                color: white;
+            }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="game-container">
+        <div id="hud">
+            <div class="hud-card">
+                <span>Nivel: <span id="level-display">1/3</span></span>
+            </div>
+            <div class="hud-card">
+                <span>Vidas:</span>
+                <span class="hearts" id="hearts-display">❤️❤️❤️</span>
+            </div>
+            <div class="hud-card">
+                <span>Cofres: <span id="chests-display">0/3</span></span>
+            </div>
+        </div>
+
+        <canvas id="gameCanvas"></canvas>
+
+        <!-- Overlay de Instrucciones Iniciales -->
+        <div id="start-modal" class="modal-overlay">
+            <div class="modal-card">
+                <h2>🍜 Pucca & Garu: Love Quest 💖</h2>
+                <p>¡Ayuda a Pucca a perseguir a Garu por la Aldea Soju y capturar su amor!</p>
+
+                <ul class="rules-list">
+                    <li><b>Controles:</b> Flechas / A-D para Moverte y Espacio / Flecha Arriba para Saltar.</li>
+                    <li><b>Eliminar Ninjas:</b> ¡Salta y cáeles justo encima de la cabeza para derrotarlos!</li>
+                    <li><b>Bloques Sorpresa:</b> ¡Golpea con la cabeza los bloques <b>?</b> por debajo!</li>
+                    <li><b>Recompensas:</b> Consigue 🍜 <b>Ramen</b> para recuperar vidas y 💖 <b>Corazón Turbo</b> para súper velocidad e invencibilidad.</li>
+                    <li><b>Cartas de Amor:</b> Abre los cofres para leer mensajitos especiales. ¡Se cierran solos en 5 segundos!</li>
+                </ul>
+
+                <button class="btn" id="start-btn">¡Empezar Aventura!</button>
+            </div>
+        </div>
+
+        <!-- Modal de Mensaje / Carta Auto-cerrable -->
+        <div id="message-modal" class="modal-overlay hidden">
+            <div class="modal-card">
+                <h2 id="msg-title">💌 ¡Mensaje Especial!</h2>
+                <p id="msg-content">Aquí va el poema o comentario gracioso...</p>
+                <div class="progress-bar-container">
+                    <div id="msg-progress" class="progress-bar"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal de Game Over / Victoria -->
+        <div id="end-modal" class="modal-overlay hidden">
+            <div class="modal-card">
+                <h2 id="end-title">¡Juego Terminado!</h2>
+                <p id="end-content">¡Has alcanzado a Garu!</p>
+                <button class="btn" id="restart-btn">Jugar de Nuevo</button>
+            </div>
+        </div>
+
+        <!-- Botones Táctiles para Móviles -->
+        <div id="mobile-controls">
+            <div class="touch-btn-group">
+                <div class="touch-btn" id="btn-left">◀</div>
+                <div class="touch-btn" id="btn-right">▶</div>
+            </div>
+            <div class="touch-btn-group">
+                <div class="touch-btn" id="btn-jump">▲</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- MÚSICA & AUDIO (Sintetizador Web Audio API) ---
+        class SoundEngine {
+            constructor() {
+                this.ctx = null;
+                this.isPlaying = false;
+                this.noteIndex = 0;
+                this.timer = null;
+
+                // Melodía de la Serie de Pucca
+                this.melody = [
+                    { f: 523.25, d: 0.15 }, { f: 659.25, d: 0.15 }, { f: 783.99, d: 0.15 }, { f: 1046.50, d: 0.3 },
+                    { f: 880.00, d: 0.15 }, { f: 1046.50, d: 0.3 }, { f: 783.99, d: 0.3 },
+                    { f: 659.25, d: 0.15 }, { f: 659.25, d: 0.15 }, { f: 698.46, d: 0.15 }, { f: 783.99, d: 0.15 },
+                    { f: 659.25, d: 0.3 }, { f: 587.33, d: 0.3 }, { f: 523.25, d: 0.4 }
+                ];
+            }
+
+            init() {
+                if (!this.ctx) {
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    this.ctx = new AudioContext();
+                }
+                if (this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+            }
+
+            playTone(freq, duration, type = 'square', vol = 0.1) {
+                if (!this.ctx) return;
+                try {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = type;
+                    osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+                    gain.gain.setValueAtTime(vol, this.ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + duration);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start();
+                    osc.stop(this.ctx.currentTime + duration);
+                } catch (e) { }
+            }
+
+            startMusic() {
+                if (this.isPlaying) return;
+                this.init();
+                this.isPlaying = true;
+                this.loopMusic();
+            }
+
+            loopMusic() {
+                if (!this.isPlaying) return;
+                const note = this.melody[this.noteIndex];
+                this.playTone(note.f, note.d, 'triangle', 0.08);
+                this.noteIndex = (this.noteIndex + 1) % this.melody.length;
+                this.timer = setTimeout(() => this.loopMusic(), note.d * 1000 + 50);
+            }
+
+            stopMusic() {
+                this.isPlaying = false;
+                if (this.timer) clearTimeout(this.timer);
+            }
+
+            playJump() {
+                this.init();
+                this.playTone(400, 0.1, 'sine', 0.15);
+                setTimeout(() => this.playTone(600, 0.15, 'sine', 0.15), 50);
+            }
+
+            playBlockHit() {
+                this.init();
+                this.playTone(200, 0.08, 'square', 0.2);
+                setTimeout(() => this.playTone(400, 0.12, 'square', 0.2), 60);
+            }
+
+            playPowerup() {
+                this.init();
+                [523, 659, 783, 1046].forEach((f, i) => {
+                    setTimeout(() => this.playTone(f, 0.1, 'sine', 0.2), i * 60);
+                });
+            }
+
+            playStomp() {
+                this.init();
+                this.playTone(300, 0.08, 'triangle', 0.25);
+                setTimeout(() => this.playTone(500, 0.1, 'sine', 0.2), 50);
+            }
+
+            playHurt() {
+                this.init();
+                this.playTone(150, 0.2, 'sawtooth', 0.25);
+            }
+        }
+
+        const sound = new SoundEngine();
+
+        // --- BASE DE DATOS DE MENSAJES (Poemas, Chistes y Sarcasmo) ---
+        const POEMS_AND_MESSAGES = [
+            { title: "🌹 Poema de Garu Asustado", text: "Dicen que el amor mata... pero en el caso de Pucca, ¡literalmente me persigue a 100 km/h!" },
+            { title: "💭 Recordatorio Importante", text: "Recordatorio diario: Eres la persona más increíble del mundo, ¡incluso cuando te pones en modo terca!" },
+            { title: "🍜 Secreto del Ramen", text: "El ingrediente secreto del ramen no es el sazón... es el toque de paciencia para aguantarme todos los días." },
+            { title: "💖 Certificado de Cariño", text: "Vale por un abrazo gigante y un beso sin derecho a reclamaciones ni devoluciones." },
+            { title: "⚡ Consejo Ninja", text: "Correr de Pucca es inútil. Tarde o temprano te va a atrapar y te va a llenar la cara de besos." },
+            { title: "📜 Poema Sarcástico", text: "Las rosas son rojas, el cielo es azul... pero cuando me besas me chiveo full}." },
+            { title: "🎁 Cofre de la Suerte", text: "¡Felicidades! Has ganado una sonrisa gratis. Sonríe ahora mismo o perderás tu recompensa." }
+        ];
+
+        // --- CONFIGURACIÓN DEL CANVAS ---
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = 900;
+        canvas.height = 500;
+
+        // --- ESTADO DEL JUEGO ---
+        let gameState = {
+            level: 1,
+            maxLevels: 3,
+            lives: 3,
+            chestsCollected: 0,
+            totalChestsNeeded: 3,
+            paused: false,
+            gameStarted: false,
+            gameOver: false,
+            cameraX: 0
+        };
+
+        // --- TECLAS Y CONTROLES ---
+        const keys = { left: false, right: false, jump: false };
+
+        window.addEventListener('keydown', e => {
+            if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') keys.left = true;
+            if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') keys.right = true;
+            if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W' || e.key === ' ') {
+                if (!keys.jump && pucca.grounded) {
+                    pucca.vy = pucca.jumpPower;
+                    pucca.grounded = false;
+                    sound.playJump();
+                }
+                keys.jump = true;
+            }
+        });
+
+        window.addEventListener('keyup', e => {
+            if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') keys.left = false;
+            if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') keys.right = false;
+            if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W' || e.key === ' ') keys.jump = false;
+        });
+
+        // Eventos táctiles
+        const bindTouch = (id, keyName) => {
+            const el = document.getElementById(id);
+            el.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                if (keyName === 'jump') {
+                    if (pucca.grounded) {
+                        pucca.vy = pucca.jumpPower;
+                        pucca.grounded = false;
+                        sound.playJump();
+                    }
+                } else {
+                    keys[keyName] = true;
+                }
+            });
+            el.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                if (keyName !== 'jump') keys[keyName] = false;
+            });
+        };
+
+        bindTouch('btn-left', 'left');
+        bindTouch('btn-right', 'right');
+        bindTouch('btn-jump', 'jump');
+
+        // --- PERSONAJE PUCCA ---
+        const pucca = {
+            x: 50,
+            y: 300,
+            width: 42,
+            height: 48,
+            vx: 0,
+            vy: 0,
+            speed: 5.5,
+            jumpPower: -13,
+            grounded: false,
+            facing: 'right',
+            poweredUp: false,
+            powerTimer: 0,
+            invulnerableTimer: 0,
+
+            update() {
+                if (this.poweredUp) {
+                    this.powerTimer--;
+                    if (this.powerTimer <= 0) {
+                        this.poweredUp = false;
+                        this.speed = 5.5;
+                        this.jumpPower = -13;
+                    }
+                }
+
+                if (this.invulnerableTimer > 0) this.invulnerableTimer--;
+
+                // Movimiento horizontal
+                if (keys.left) {
+                    this.vx = -this.speed;
+                    this.facing = 'left';
+                } else if (keys.right) {
+                    this.vx = this.speed;
+                    this.facing = 'right';
+                } else {
+                    this.vx *= 0.7;
+                }
+
+                // Gravedad
+                this.vy += 0.65;
+
+                this.x += this.vx;
+                this.y += this.vy;
+
+                // Límites
+                if (this.x < 0) this.x = 0;
+            },
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x + this.width / 2, this.y + this.height / 2);
+
+                if (this.facing === 'left') ctx.scale(-1, 1);
+
+                // Parpadeo de invulnerabilidad
+                if (this.invulnerableTimer > 0 && Math.floor(Date.now() / 100) % 2 === 0) {
+                    ctx.globalAlpha = 0.5;
+                }
+
+                // Efecto Aura Turbo Superpoder
+                if (this.poweredUp) {
+                    ctx.beginPath();
+                    ctx.arc(0, 0, 30, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(255, 204, 0, ${0.4 + Math.sin(Date.now() / 100) * 0.2})`;
+                    ctx.fill();
+                }
+
+                // --- CUMPLE DIBUJO PUCCA VECTORIAL ---
+                // Vestido rojo
+                ctx.fillStyle = '#e60026';
+                ctx.beginPath();
+                ctx.ellipse(0, 8, 16, 14, 0, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Cabeza blanca
+                ctx.fillStyle = '#ffebee';
+                ctx.beginPath();
+                ctx.arc(0, -8, 18, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.strokeStyle = '#1a1a1a';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                // Moños negros (Odangos)
+                ctx.fillStyle = '#1a1a1a';
+                ctx.beginPath();
+                ctx.arc(-18, -18, 9, 0, Math.PI * 2); // Izq
+                ctx.arc(18, -18, 9, 0, Math.PI * 2);  // Der
+                ctx.fill();
+
+                // Cintas rojas moños
+                ctx.fillStyle = '#e60026';
+                ctx.fillRect(-20, -12, 5, 6);
+                ctx.fillRect(15, -12, 5, 6);
+
+                // Ojos felices
+                ctx.strokeStyle = '#1a1a1a';
+                ctx.lineWidth = 2.5;
+                ctx.beginPath();
+                ctx.arc(-7, -8, 5, Math.PI, 0); // Ojo Izq
+                ctx.arc(7, -8, 5, Math.PI, 0);  // Ojo Der
+                ctx.stroke();
+
+                // Mejillas rosadas
+                ctx.fillStyle = '#ff80ab';
+                ctx.beginPath();
+                ctx.arc(-10, -3, 4, 0, Math.PI * 2);
+                ctx.arc(10, -3, 4, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Sonrisa
+                ctx.beginPath();
+                ctx.arc(0, -3, 4, 0, Math.PI);
+                ctx.stroke();
+
+                ctx.restore();
+            }
+        };
+
+        // --- GARU (OBJETIVO DEL NIVEL) ---
+        const garu = {
+            x: 2200,
+            y: 300,
+            width: 40,
+            height: 48,
+            draw() {
+                ctx.save();
+                ctx.translate(this.x + this.width / 2, this.y + this.height / 2);
+
+                // Traje Ninja Negro
+                ctx.fillStyle = '#1a1a1a';
+                ctx.beginPath();
+                ctx.ellipse(0, 8, 15, 14, 0, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Corazón Rojo en el pecho
+                ctx.fillStyle = '#e60026';
+                ctx.beginPath();
+                ctx.arc(-3, 6, 3, 0, Math.PI * 2);
+                ctx.arc(3, 6, 3, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Cabeza
+                ctx.fillStyle = '#ffebee';
+                ctx.beginPath();
+                ctx.arc(0, -8, 17, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.strokeStyle = '#1a1a1a';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                // Coletas Ninjas hacia arriba
+                ctx.fillStyle = '#1a1a1a';
+                ctx.beginPath();
+                ctx.ellipse(-14, -20, 5, 10, -Math.PI / 4, 0, Math.PI * 2);
+                ctx.ellipse(14, -20, 5, 10, Math.PI / 4, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Ojos enojados ninjas
+                ctx.strokeStyle = '#1a1a1a';
+                ctx.lineWidth = 2.5;
+                ctx.beginPath();
+                ctx.moveTo(-10, -12); ctx.lineTo(-3, -7);
+                ctx.moveTo(10, -12); ctx.lineTo(3, -7);
+                ctx.stroke();
+
+                ctx.restore();
+            }
+        };
+
+        // --- ELEMENTOS DEL MAPA Y BLOQUES ---
+        let platforms = [];
+        let blocks = [];
+        let chests = [];
+        let powerups = [];
+        let enemies = [];
+
+        function initLevel(lvl) {
+            gameState.level = lvl;
+            gameState.chestsCollected = 0;
+            pucca.x = 50;
+            pucca.y = 300;
+            pucca.vx = 0;
+            pucca.vy = 0;
+            gameState.cameraX = 0;
+
+            const levelWidth = 2000 + lvl * 400;
+            garu.x = levelWidth - 150;
+
+            // Suelos y Plataformas
+            platforms = [
+                { x: 0, y: 420, width: 700, height: 80 },
+                { x: 780, y: 420, width: 800, height: 80 },
+                { x: 1650, y: 420, width: levelWidth - 1650, height: 80 },
+
+                { x: 300, y: 300, width: 140, height: 20 },
+                { x: 550, y: 220, width: 160, height: 20 },
+                { x: 900, y: 280, width: 180, height: 20 },
+                { x: 1200, y: 200, width: 150, height: 20 },
+                { x: 1450, y: 300, width: 160, height: 20 }
+            ];
+
+            // Bloques Rompibles / Sorpresa
+            blocks = [
+                { x: 340, y: 180, width: 36, height: 36, type: 'RAMEN', hit: false },
+                { x: 600, y: 110, width: 36, height: 36, type: 'TURBO', hit: false },
+                { x: 950, y: 160, width: 36, height: 36, type: 'RAMEN', hit: false },
+                { x: 1250, y: 80, width: 36, height: 36, type: 'TURBO', hit: false },
+                { x: 1500, y: 180, width: 36, height: 36, type: 'RAMEN', hit: false }
+            ];
+
+            // Cofres con cartas
+            chests = [
+                { x: 350, y: 260, width: 32, height: 32, opened: false },
+                { x: 980, y: 240, width: 32, height: 32, opened: false },
+                { x: 1480, y: 260, width: 32, height: 32, opened: false }
+            ];
+
+            // Enemigos (Ninjas Rivales)
+            enemies = [
+                { x: 450, y: 380, width: 32, height: 36, vx: 2, minX: 400, maxX: 650, alive: true },
+                { x: 1000, y: 380, width: 32, height: 36, vx: 2.5 + lvl * 0.5, minX: 850, maxX: 1150, alive: true },
+                { x: 1700, y: 380, width: 32, height: 36, vx: 3, minX: 1650, maxX: 1900, alive: true }
+            ];
+
+            powerups = [];
+            updateHUD();
+        }
+
+        // --- ACTUALIZACIÓN DE HUD Y MODALES ---
+        function updateHUD() {
+            document.getElementById('level-display').innerText = `${gameState.level}/${gameState.maxLevels}`;
+            document.getElementById('hearts-display').innerText = '❤️'.repeat(Math.max(0, gameState.lives));
+            document.getElementById('chests-display').innerText = `${gameState.chestsCollected}/${gameState.totalChestsNeeded}`;
+        }
+
+        function showAutoClosingMessage(title, text) {
+            gameState.paused = true;
+            const modal = document.getElementById('message-modal');
+            const progressBar = document.getElementById('msg-progress');
+            document.getElementById('msg-title').innerText = title;
+            document.getElementById('msg-content').innerText = text;
+
+            modal.classList.remove('hidden');
+            progressBar.style.transition = 'none';
+            progressBar.style.width = '100%';
+
+            setTimeout(() => {
+                progressBar.style.transition = 'width 5s linear';
+                progressBar.style.width = '0%';
+            }, 50);
+
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                gameState.paused = false;
+            }, 5050);
+        }
+
+        // --- BUCLE PRINCIPAL DE JUEGO ---
+        function update() {
+            if (!gameState.gameStarted || gameState.paused || gameState.gameOver) return;
+
+            pucca.update();
+
+            // Colisión Pucca con plataformas
+            pucca.grounded = false;
+            platforms.forEach(plat => {
+                if (pucca.x < plat.x + plat.width &&
+                    pucca.x + pucca.width > plat.x &&
+                    pucca.y + pucca.height >= plat.y &&
+                    pucca.y + pucca.height <= plat.y + 15 &&
+                    pucca.vy >= 0) {
+                    pucca.grounded = true;
+                    pucca.vy = 0;
+                    pucca.y = plat.y - pucca.height;
+                }
+            });
+
+            // Colisión Pucca con Bloques Sorpresa
+            blocks.forEach(b => {
+                if (pucca.x < b.x + b.width &&
+                    pucca.x + pucca.width > b.x &&
+                    pucca.y <= b.y + b.height &&
+                    pucca.y >= b.y &&
+                    pucca.vy < 0) {
+
+                    pucca.vy = 2; // Rebote
+                    if (!b.hit) {
+                        b.hit = true;
+                        sound.playBlockHit();
+
+                        powerups.push({
+                            x: b.x + 4,
+                            y: b.y - 30,
+                            width: 28,
+                            height: 28,
+                            type: b.type,
+                            vy: -3
+                        });
+                    }
+                }
+            });
+
+            // Actualizar Power-ups voladores
+            powerups.forEach((p, idx) => {
+                p.y += p.vy;
+                p.vy += 0.2;
+                if (p.vy > 0) p.vy = 0;
+
+                if (pucca.x < p.x + p.width &&
+                    pucca.x + pucca.width > p.x &&
+                    pucca.y < p.y + p.height &&
+                    pucca.y + pucca.height > p.y) {
+
+                    sound.playPowerup();
+                    if (p.type === 'RAMEN') {
+                        if (gameState.lives < 3) gameState.lives++;
+                        updateHUD();
+                    } else if (p.type === 'TURBO') {
+                        pucca.poweredUp = true;
+                        pucca.powerTimer = 400;
+                        pucca.speed = 9;
+                        pucca.jumpPower = -15;
+                    }
+                    powerups.splice(idx, 1);
+                }
+            });
+
+            // Cofres
+            chests.forEach(c => {
+                if (!c.opened &&
+                    pucca.x < c.x + c.width &&
+                    pucca.x + pucca.width > c.x &&
+                    pucca.y < c.y + c.height &&
+                    pucca.y + pucca.height > c.y) {
+
+                    c.opened = true;
+                    gameState.chestsCollected++;
+                    updateHUD();
+
+                    const msg = POEMS_AND_MESSAGES[Math.floor(Math.random() * POEMS_AND_MESSAGES.length)];
+                    showAutoClosingMessage(msg.title, msg.text);
+                }
+            });
+
+            // ENEMIGOS (Con salto pisotón para derribarlos)
+            enemies.forEach(e => {
+                if (!e.alive) return;
+
+                e.x += e.vx;
+                if (e.x < e.minX || e.x > e.maxX) e.vx *= -1;
+
+                // Colisión con Pucca
+                if (pucca.x < e.x + e.width &&
+                    pucca.x + pucca.width > e.x &&
+                    pucca.y < e.y + e.height &&
+                    pucca.y + pucca.height > e.y) {
+
+                    // Si cae por encima del ninja -> Derrota al ninja
+                    if (pucca.vy > 0 && pucca.y + pucca.height - pucca.vy <= e.y + 12) {
+                        e.alive = false;
+                        pucca.vy = -9; // Rebote de salto
+                        sound.playStomp();
+                    }
+                    // Si está en modo Superpoder Turbo -> Derrota al ninja al contacto
+                    else if (pucca.poweredUp) {
+                        e.alive = false;
+                        sound.playStomp();
+                    }
+                    // Si choca de lado o desde abajo -> Recibe daño
+                    else if (pucca.invulnerableTimer <= 0) {
+                        gameState.lives--;
+                        pucca.invulnerableTimer = 90;
+                        sound.playHurt();
+                        updateHUD();
+
+                        if (gameState.lives <= 0) {
+                            endGame(false);
+                        }
+                    }
+                }
+            });
+
+            // Caída al vacío
+            if (pucca.y > 550) {
+                gameState.lives--;
+                sound.playHurt();
+                updateHUD();
+                if (gameState.lives <= 0) {
+                    endGame(false);
+                } else {
+                    pucca.x = Math.max(50, pucca.x - 200);
+                    pucca.y = 200;
+                    pucca.vy = 0;
+                }
+            }
+
+            // Llegada a Garu
+            if (pucca.x < garu.x + garu.width &&
+                pucca.x + pucca.width > garu.x &&
+                pucca.y < garu.y + garu.height &&
+                pucca.y + pucca.height > garu.y) {
+
+                if (gameState.level < gameState.maxLevels) {
+                    initLevel(gameState.level + 1);
+                    showAutoClosingMessage("🎉 ¡Nivel Completado!", `¡Avanzas al Nivel ${gameState.level}! Garu no se rendirá tan fácil.`);
+                } else {
+                    endGame(true);
+                }
+            }
+
+            // Seguimiento de cámara
+            gameState.cameraX = pucca.x - 200;
+            if (gameState.cameraX < 0) gameState.cameraX = 0;
+        }
+
+        // --- RENDERIZADO VISUAL DEL ANIME DE PUCCA ---
+        function render() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            ctx.save();
+            ctx.translate(-gameState.cameraX, 0);
+
+            // 1. FONDO ESTILO ANIME PUCCA
+            const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            grad.addColorStop(0, '#ff9a9e');
+            grad.addColorStop(0.5, '#fecfef');
+            grad.addColorStop(1, '#a1c4fd');
+            ctx.fillStyle = grad;
+            ctx.fillRect(gameState.cameraX, 0, canvas.width, canvas.height);
+
+            // Pagodas Orientales
+            ctx.fillStyle = 'rgba(230, 0, 38, 0.15)';
+            for (let i = 0; i < 5; i++) {
+                let px = i * 600;
+                ctx.fillRect(px, 250, 80, 150);
+                ctx.beginPath();
+                ctx.moveTo(px - 20, 250); ctx.lineTo(px + 40, 200); ctx.lineTo(px + 100, 250);
+                ctx.fill();
+            }
+
+            // 2. PLATAFORMAS
+            platforms.forEach(plat => {
+                ctx.fillStyle = '#8d5b4c';
+                ctx.fillRect(plat.x, plat.y, plat.width, plat.height);
+                ctx.fillStyle = '#4CAF50';
+                ctx.fillRect(plat.x, plat.y, plat.width, 8);
+            });
+
+            // 3. BLOQUES SORPRESA
+            blocks.forEach(b => {
+                ctx.fillStyle = b.hit ? '#9e9e9e' : '#ffcc00';
+                ctx.fillRect(b.x, b.y, b.width, b.height);
+                ctx.strokeStyle = '#d4ac0d';
+                ctx.strokeRect(b.x, b.y, b.width, b.height);
+
+                ctx.fillStyle = '#fff';
+                ctx.font = 'bold 20px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText(b.hit ? '✓' : '?', b.x + b.width / 2, b.y + 26);
+            });
+
+            // 4. POWER-UPS
+            powerups.forEach(p => {
+                ctx.font = '22px Arial';
+                ctx.fillText(p.type === 'RAMEN' ? '🍜' : '💖', p.x, p.y + 20);
+            });
+
+            // 5. COFRES
+            chests.forEach(c => {
+                ctx.fillStyle = c.opened ? '#795548' : '#d4ac0d';
+                ctx.fillRect(c.x, c.y, c.width, c.height);
+                ctx.fillStyle = '#fff';
+                ctx.font = '14px Arial';
+                ctx.fillText(c.opened ? '💌' : '🎁', c.x + 8, c.y + 22);
+            });
+
+            // 6. ENEMIGOS NINJAS RIVALES
+            enemies.forEach(e => {
+                if (!e.alive) return;
+                ctx.fillStyle = '#333';
+                ctx.fillRect(e.x, e.y, e.width, e.height);
+                ctx.fillStyle = '#e60026';
+                ctx.fillRect(e.x + 4, e.y + 8, e.width - 8, 6);
+            });
+
+            // 7. PERSONAJES PRINCIPALES
+            garu.draw();
+            pucca.draw();
+
+            ctx.restore();
+        }
+
+        // --- CICLO COMPLETO DE JUEGO ---
+        function loop() {
+            update();
+            render();
+            requestAnimationFrame(loop);
+        }
+
+        function endGame(victory) {
+            gameState.gameOver = true;
+            sound.stopMusic();
+            const modal = document.getElementById('end-modal');
+            const title = document.getElementById('end-title');
+            const content = document.getElementById('end-content');
+
+            if (victory) {
+                title.innerText = "💖 ¡Victoria de Amor!";
+                content.innerText = "¡Pucca alcanzó a Garu y le dio el abrazo más grande del mundo mundial!";
+            } else {
+                title.innerText = "💔 ¡Casi lo logras!";
+                content.innerText = "Garu logró escapar esta vez. ¡Inténtalo de nuevo!";
+            }
+            modal.classList.remove('hidden');
+        }
+
+        // --- EVENTOS DE BOTONES ---
+        document.getElementById('start-btn').addEventListener('click', () => {
+            document.getElementById('start-modal').classList.add('hidden');
+            gameState.gameStarted = true;
+            initLevel(1);
+            sound.startMusic();
+        });
+
+        document.getElementById('restart-btn').addEventListener('click', () => {
+            document.getElementById('end-modal').classList.add('hidden');
+            gameState.lives = 3;
+            gameState.gameOver = false;
+            initLevel(1);
+            sound.startMusic();
+        });
+
+        // Iniciar loop
+        loop();
+    </script>
+</body>
+</html>
